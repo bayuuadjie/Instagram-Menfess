@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin Menfess</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1b1340; --lilac:#e6dcff; --bubble:#ff6fb5; --lemon:#ffe45c; --mint:#5ef0c0; --shadow:4px 4px 0 var(--ink); }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--lilac); color: var(--ink); font: 16px/1.5 "DM Sans", system-ui, sans-serif; padding: 28px 18px 60px; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: clamp(32px, 7vw, 48px); line-height: 1; margin-bottom: 18px; }
+  .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+  .tab { font: inherit; font-weight: 700; color: var(--ink); background: #fff; border: 2.5px solid var(--ink); border-radius: 999px; padding: 6px 16px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--lemon); box-shadow: 3px 3px 0 var(--ink); }
+  .item { background: #fff; border: 3px solid var(--ink); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin-bottom: 18px; }
+  .bubble { border: 2.5px solid var(--ink); border-radius: 12px; padding: 16px; font-weight: 700; font-size: 18px; white-space: pre-line; overflow-wrap: anywhere; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .when { font-size: 14px; color: #4b4278; margin-right: auto; }
+  .err { width: 100%; font-size: 14px; color: #d6256f; }
+  button.act { font: inherit; font-weight: 800; color: var(--ink); border: 2.5px solid var(--ink); border-radius: 12px; padding: 8px 18px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); }
+  button.act:active { transform: translate(3px, 3px); box-shadow: none; }
+  button.ok { background: var(--mint); }
+  button.no { background: #fff; }
+  button:disabled { opacity: .5; cursor: wait; }
+  button:focus-visible { outline: 3px solid var(--bubble); outline-offset: 3px; }
+  .empty { text-align: center; padding: 40px 0; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Antrean menfess</h1>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+  const TPL = {
+    pink: ["#ffd6e0", "#4a1d2b"], dark: ["#1a1a2e", "#eaeaea"], mint: ["#d4f5e9", "#154734"],
+    lemon: ["#fff3a8", "#4a3b00"], gradient: ["linear-gradient(135deg,#ffd1e8,#b9a6ff)", "#1b1340"],
+  };
+  const TABS = [["pending", "Menunggu"], ["posted", "Terposting"], ["failed", "Gagal"], ["rejected", "Ditolak"]];
+  let current = "pending";
+  const $list = document.getElementById("list"), $tabs = document.getElementById("tabs");
+
+  function renderTabs() {
+    $tabs.innerHTML = "";
+    for (const [key, label] of TABS) {
+      const b = document.createElement("button");
+      b.className = "tab"; b.role = "tab"; b.textContent = label;
+      b.setAttribute("aria-selected", key === current);
+      b.onclick = () => { current = key; renderTabs(); load(); };
+      $tabs.appendChild(b);
+    }
+  }
+
+  async function act(id, action, btns) {
+    btns.forEach((b) => (b.disabled = true));
+    const r = await fetch(`/api/admin/${id}/${action}`, { method: "POST" });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      alert(d.error || "Gagal");
+    }
+    load();
+  }
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  async function load() {
+    const r = await fetch("/api/admin/list?status=" + current);
+    if (!r.ok) { $list.replaceChildren(el("p", "empty", "Gagal memuat. Muat ulang halaman.")); return; }
+    const items = await r.json();
+    if (!items.length) { $list.replaceChildren(el("p", "empty", "Tidak ada menfess di sini.")); return; }
+
+    $list.replaceChildren(...items.map((m) => {
+      const [bg, fg] = TPL[m.template] || TPL.pink;
+      const card = el("div", "item");
+      const bubble = el("div", "bubble", m.text);
+      bubble.style.background = bg; bubble.style.color = fg;
+      const row = el("div", "row");
+      row.appendChild(el("span", "when", new Date(m.created_at).toLocaleString("id-ID")));
+      if (m.error) row.appendChild(el("span", "err", m.error));
+      if (current === "pending" || current === "failed") {
+        const no = el("button", "act no", "Tolak");
+        const ok = el("button", "act ok", current === "failed" ? "Coba lagi" : "Posting");
+        no.onclick = () => act(m.id, "reject", [no, ok]);
+        ok.onclick = () => { ok.textContent = "Memposting…"; act(m.id, "approve", [no, ok]); };
+        row.append(no, ok);
+      }
+      card.append(bubble, row);
+      return card;
+    }));
+  }
+
+  renderTabs(); load();
+  setInterval(() => { if (current === "pending" && !document.hidden) load(); }, 20000);
+</script>
+</body>
+</html>

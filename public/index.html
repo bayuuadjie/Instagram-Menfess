@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menfess Instagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b1340;
+    --lilac: #e6dcff;
+    --bubble: #ff6fb5;
+    --lemon: #ffe45c;
+    --mint: #5ef0c0;
+    --white: #ffffff;
+    --radius: 18px;
+    --shadow: 5px 5px 0 var(--ink);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    min-height: 100vh;
+    background: var(--lilac);
+    background-image: radial-gradient(var(--ink) 1.2px, transparent 1.2px);
+    background-size: 26px 26px;
+    background-position: 0 0;
+    color: var(--ink);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 32px 18px 56px;
+  }
+  .wrap { max-width: 1020px; margin: 0 auto; }
+
+  header { margin-bottom: 28px; max-width: 560px; }
+  .badge {
+    display: inline-block;
+    background: var(--lemon);
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 3px 3px 0 var(--ink);
+    transform: rotate(-2deg);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: "Bricolage Grotesque", "DM Sans", sans-serif;
+    font-weight: 800;
+    font-size: clamp(40px, 8vw, 68px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  header p { font-size: 18px; max-width: 46ch; }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: start; }
+  @media (min-width: 860px) { .grid { grid-template-columns: 1.05fr 0.95fr; gap: 40px; } }
+
+  .panel {
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+  }
+  label, .legend { display: block; font-weight: 700; margin-bottom: 8px; }
+
+  textarea {
+    width: 100%;
+    min-height: 170px;
+    resize: vertical;
+    font: inherit;
+    color: var(--ink);
+    background: #fbf9ff;
+    border: 2.5px solid var(--ink);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  textarea::placeholder { color: #7a70a8; }
+  textarea:focus-visible, button:focus-visible, .tpl input:focus-visible + span {
+    outline: 3px solid var(--bubble);
+    outline-offset: 3px;
+  }
+  .meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 14px; min-height: 22px; }
+  .count { font-weight: 700; margin-left: auto; }
+  .count.warn { color: #d6256f; }
+  .error { color: #d6256f; font-weight: 500; }
+
+  fieldset { border: 0; padding: 0; margin: 20px 0 22px; }
+  .tpls { display: flex; gap: 12px; flex-wrap: wrap; }
+  .tpl { position: relative; cursor: pointer; }
+  .tpl input { position: absolute; opacity: 0; inset: 0; }
+  .tpl span {
+    display: flex; align-items: center; gap: 10px;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 8px 16px 8px 8px;
+    font-weight: 700;
+    background: var(--white);
+    transition: transform .12s, box-shadow .12s, background .12s;
+  }
+  .tpl i { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid var(--ink); display: block; }
+  .tpl input:checked + span { background: var(--lemon); box-shadow: 3px 3px 0 var(--ink); transform: translate(-1px, -1px); }
+
+  .send {
+    width: 100%;
+    font: inherit;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--ink);
+    background: var(--bubble);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    padding: 14px 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .send:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--ink); }
+  .send:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--ink); }
+  .send:disabled { background: #d9d2ee; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 var(--ink); }
+
+  .note { margin-top: 14px; font-size: 14px; color: #4b4278; }
+
+  /* Preview: ukuran font mengikuti lebar kartu, sama dengan render 1080px di server */
+  .preview-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .preview-label { font-weight: 700; }
+  .card-frame {
+    width: 100%;
+    max-width: 440px;
+    border: 3px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transform: rotate(1.5deg);
+    transition: transform .3s;
+  }
+  .card-frame:hover { transform: rotate(0deg); }
+  .card {
+    container-type: inline-size;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    padding: 11%;
+    text-align: center;
+    background: #ffd6e0;
+    color: #4a1d2b;
+    transition: background .25s, color .25s;
+  }
+  .card[data-t="dark"] { background: #1a1a2e; color: #eaeaea; }
+  .card[data-t="mint"] { background: #d4f5e9; color: #154734; }
+  .card[data-t="lemon"] { background: #fff3a8; color: #4a3b00; }
+  .card[data-t="gradient"] { background: linear-gradient(135deg, #ffd1e8, #b9a6ff); color: #1b1340; }
+  .cf-turnstile { margin-bottom: 16px; min-height: 65px; }
+  .card p {
+    font-family: "DM Sans", sans-serif;
+    font-weight: 700;
+    font-size: 4.44cqw;
+    line-height: 1.375;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+  .card p.empty { opacity: .45; }
+
+  .toast {
+    position: fixed;
+    left: 50%; bottom: 24px;
+    transform: translate(-50%, 140%);
+    background: var(--mint);
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px 20px;
+    font-weight: 700;
+    transition: transform .35s cubic-bezier(.3, 1.5, .5, 1);
+    max-width: calc(100% - 36px);
+  }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast.bad { background: #ffb3c8; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">100% anonim</span>
+    <h1>Curhat apa hari ini?</h1>
+    <p>Tulis menfess kamu, pilih warna kartunya, lalu kirim. Tidak perlu login dan tidak ada yang tahu itu kamu.</p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <label for="text">Pesan kamu</label>
+      <textarea id="text" maxlength="280" placeholder="Tulis di sini. Misalnya: buat kamu yang duduk di pojok perpustakaan kemarin…"></textarea>
+      <div class="meta">
+        <span class="error" id="err" role="alert"></span>
+        <span class="count" id="count">0 / 280</span>
+      </div>
+
+      <fieldset>
+        <span class="legend">Warna kartu</span>
+        <div class="tpls">
+          <label class="tpl"><input type="radio" name="tpl" value="pink" checked><span><i style="background:#ffd6e0"></i>Pink</span></label>
+          <label class="tpl"><input type="radio" name="tpl" value="dark"><span><i style="background:#1a1a2e"></i>Dark</span></label>
+          <label class="tpl"><input type="radio" name="tpl" value="mint"><span><i style="background:#d4f5e9"></i>Mint</span></label>
+          <label class="tpl"><input type="radio" name="tpl" value="lemon"><span><i style="background:#fff3a8"></i>Lemon</span></label>
+          <label class="tpl"><input type="radio" name="tpl" value="gradient"><span><i style="background:linear-gradient(135deg,#ffd1e8,#b9a6ff)"></i>Gradient</span></label>
+        </div>
+      </fieldset>
+
+      <!-- Ganti data-sitekey dengan site key asli dari dashboard Cloudflare. Key di bawah = kunci tes (selalu lolos). -->
+      <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
+      <button class="send" id="send" type="button" disabled>Kirim menfess</button>
+      <p class="note">Jangan menyebut nama, nomor, atau data pribadi orang lain. Pesan yang melanggar aturan tidak akan diposting.</p>
+    </div>
+
+    <div class="preview-col">
+      <span class="preview-label">Begini tampilannya di Instagram</span>
+      <div class="card-frame">
+        <div class="card" id="card" data-t="pink"><p id="out" class="empty">Pesan kamu muncul di sini</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const text = $("text"), out = $("out"), card = $("card"), count = $("count");
+  const send = $("send"), err = $("err"), toast = $("toast");
+  const PLACEHOLDER = "Pesan kamu muncul di sini";
+  let toastTimer;
+
+  function currentTemplate() {
+    return document.querySelector('input[name="tpl"]:checked').value;
+  }
+
+  function update() {
+    const v = text.value;
+    const has = v.trim().length > 0;
+    out.textContent = has ? v : PLACEHOLDER;
+    out.classList.toggle("empty", !has);
+    count.textContent = v.length + " / 280";
+    count.classList.toggle("warn", v.length > 250);
+    send.disabled = !has;
+    err.textContent = "";
+  }
+
+  function showToast(msg, bad) {
+    toast.textContent = msg;
+    toast.classList.toggle("bad", !!bad);
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+  }
+
+  text.addEventListener("input", update);
+  document.querySelectorAll('input[name="tpl"]').forEach((r) =>
+    r.addEventListener("change", () => (card.dataset.t = currentTemplate()))
+  );
+
+  send.addEventListener("click", async () => {
+    send.disabled = true;
+    send.textContent = "Mengirim…";
+    err.textContent = "";
+    try {
+      const res = await fetch("/api/menfess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.value.trim(), template: currentTemplate(), token: window.turnstile ? turnstile.getResponse() : "" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        text.value = "";
+        update();
+        showToast("Terkirim! Menfess kamu menunggu persetujuan admin.");
+      } else if (res.status === 429) {
+        err.textContent = "Terlalu sering mengirim. Coba lagi beberapa menit lagi.";
+        showToast("Tunggu sebentar sebelum kirim lagi", true);
+      } else {
+        err.textContent = data.error || "Gagal mengirim. Coba lagi.";
+        showToast("Menfess belum terkirim", true);
+      }
+    } catch (e) {
+      err.textContent = "Tidak bisa terhubung ke server. Cek koneksi kamu.";
+      showToast("Koneksi bermasalah", true);
+    } finally {
+      if (window.turnstile) turnstile.reset();
+      send.textContent = "Kirim menfess";
+      send.disabled = text.value.trim().length === 0;
+    }
+  });
+
+  update();
+</script>
+</body>
+</html>
